@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - query-service
+    environment:
+      - REACT_APP_QUERY_SERVICE_URL=http://localhost:8002
+    volumes:
+      - ./frontend-service:/app
+      - /app/node_modules
+
+  document-service:
+    build:
+      context: ./document-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./document-service:/app
+      - ./document-service/pdfs:/app/pdfs
+      - ./document-service/chroma_db:/app/chroma_db
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  nlp-service:
+    build:
+      context: ./nlp-service
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - document-service
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DOCUMENT_SERVICE_URL=http://document-service:8000
+    volumes:
+      - ./nlp-service:/app
+
+  query-service:
+    build:
+      context: ./query-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    depends_on:
+      - nlp-service
+      - document-service
+    environment:
+      - NLP_SERVICE_URL=http://nlp-service:8001
+      - DOCUMENT_SERVICE_URL=http://document-service:8000
+    volumes:
+      - ./query-service:/app
