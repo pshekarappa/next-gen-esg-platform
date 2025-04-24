@@ -217,24 +217,52 @@ def hybrid_search(query, n_results=5):
     return list(unique_results.values())
 
 def preprocess_query(query):
-    # Expand ESG acronyms
+    # Expand ESG acronyms and common terms
     replacements = {
         "ESG": "Environmental, Social, and Governance",
         "GHG": "Greenhouse Gas",
-        "CSR": "Corporate Social Responsibility"
+        "CSR": "Corporate Social Responsibility",
+        "policy": "policy document guideline standard",
+        "target": "goal objective aim target",
+        "report": "report document statement disclosure"
     }
     
-    for acronym, expansion in replacements.items():
-        if acronym in query:
-            query = query.replace(acronym, f"{acronym} ({expansion})")
+    # Apply replacements
+    for term, expansion in replacements.items():
+        if term.lower() in query.lower():
+            query = query.replace(term, f"{term} ({expansion})")
     
-    # Add query expansion via OpenAI
+    # Add query expansion via OpenAI with better context
+    expansion_prompt = f"""Given this ESG policy question: "{query}"
+
+Generate 3 alternative phrasings that would help find relevant policy documents. Consider:
+1. Different ways to ask about the same policy
+2. Related policy terms and concepts
+3. Specific policy document types that might contain this information
+
+Return only the questions separated by |"""
+
     expansion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "Generate 3 alternative phrasings of the user's ESG policy question to improve search results. Return only the questions separated by |"},
+            {"role": "system", "content": expansion_prompt},
             {"role": "user", "content": query}
-        ]
+        ],
+        temperature=0.7  # Slightly higher temperature for more diverse expansions
     ).choices[0].message.content
     
-    return {"original": query, "expansions": expansion.split("|")}
+    # Combine original query with expansions
+    all_queries = [query] + expansion.split("|")
+    
+    # Remove duplicates and empty strings
+    all_queries = list(set(filter(None, all_queries)))
+    
+    return {
+        "original": query,
+        "expansions": all_queries,
+        "metadata": {
+            "query_type": "policy_search",
+            "processed_time": "now",  # In production, add actual timestamp
+            "expansion_count": len(all_queries)
+        }
+    }

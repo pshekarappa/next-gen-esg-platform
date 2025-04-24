@@ -8,6 +8,8 @@ import json
 import glob
 import logging
 from pydantic import BaseModel
+import re
+from datetime import datetime
 
 # Import our modules
 from pdf_processor import extract_text_from_pdf, extract_metadata_from_pdf, chunk_text
@@ -196,5 +198,113 @@ async def upload_file(
     except Exception as e:
         logger.error(f"Error processing uploaded file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+def process_document(file_path):
+    try:
+        # Extract text from PDF with better error handling
+        text = extract_text_from_pdf(file_path)
+        
+        # Extract metadata from the document
+        metadata = extract_metadata(text)
+        
+        # Create chunks with policy-specific considerations
+        chunks = create_policy_chunks(text)
+        
+        # Generate embeddings for each chunk
+        embeddings = []
+        for chunk in chunks:
+            embedding = generate_embedding(chunk["text"])
+            embeddings.append({
+                "text": chunk["text"],
+                "embedding": embedding,
+                "metadata": {
+                    **metadata,
+                    "chunk_type": chunk["type"],
+                    "page_number": chunk["page"],
+                    "section_title": chunk.get("section_title", "")
+                }
+            })
+        
+        return {
+            "success": True,
+            "embeddings": embeddings,
+            "metadata": metadata,
+            "total_chunks": len(chunks)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+def extract_metadata(text):
+    # Extract key metadata from policy documents
+    metadata = {
+        "document_type": "policy",
+        "extracted_date": datetime.now().isoformat()
+    }
+    
+    # Try to extract policy title
+    title_match = re.search(r'^(.*?)\n', text)
+    if title_match:
+        metadata["title"] = title_match.group(1).strip()
+    
+    # Try to extract policy date
+    date_patterns = [
+        r'Date:\s*(\d{1,2}/\d{1,2}/\d{4})',
+        r'Effective\s*Date:\s*(\d{1,2}/\d{1,2}/\d{4})',
+        r'(\d{1,2}\s+[A-Za-z]+\s+\d{4})'
+    ]
+    for pattern in date_patterns:
+        date_match = re.search(pattern, text)
+        if date_match:
+            metadata["date"] = date_match.group(1)
+            break
+    
+    return metadata
+
+def create_policy_chunks(text):
+    # Split text into pages
+    pages = text.split('\f')
+    chunks = []
+    
+    for page_num, page in enumerate(pages, 1):
+        # Split page into sections based on headings
+        sections = re.split(r'\n(?=[A-Z][a-z]+(?: [A-Z][a-z]+)*\s*\n)', page)
+        
+        current_section = None
+        current_text = []
+        
+        for section in sections:
+            # Check if this is a heading
+            if re.match(r'^[A-Z][a-z]+(?: [A-Z][a-z]+)*\s*$', section.strip()):
+                if current_section and current_text:
+                    # Create chunk for previous section
+                    chunk_text = ' '.join(current_text)
+                    if len(chunk_text) > 100:  # Minimum chunk size
+                        chunks.append({
+                            "text": chunk_text,
+                            "type": "section",
+                            "page": page_num,
+                            "section_title": current_section
+                        })
+                
+                current_section = section.strip()
+                current_text = []
+            else:
+                current_text.append(section)
+        
+        # Handle remaining text
+        if current_text:
+            chunk_text = ' '.join(current_text)
+            if len(chunk_text) > 100:
+                chunks.append({
+                    "text": chunk_text,
+                    "type": "section" if current_section else "content",
+                    "page": page_num,
+                    "section_title": current_section
+                })
+    
+    return chunks
 
 # Run with: uvicorn main:app --reload
