@@ -1,164 +1,219 @@
-# ESG Platform - Frontend Service
+# ESG Platform Frontend Service
 
-## Overview
+This is the frontend service for the Next-Gen ESG Platform, built with React and Material UI.
 
-This repository contains the frontend service for the ESG (Environmental, Social, and Governance) platform. The frontend is built with React and provides a user interface for querying ESG-related information and viewing company policies.
+## 📋 Table of Contents
 
-## Tech Stack
+- [Overview](#overview)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Development Guide](#development-guide)
+- [Available Scripts](#available-scripts)
+- [Customizing the Theme](#customizing-the-theme)
+- [API Integration](#api-integration)
+- [Troubleshooting](#troubleshooting)
 
-- React 19.1.0
-- Material UI 7.0.2 (for UI components)
-- React Router 7.5.1 (for navigation)
-- Axios (for API requests)
+## 🔍 Overview
 
-## Prerequisites
+This frontend service provides the user interface for the ESG Platform, allowing users to view and interact with ESG (Environmental, Social, and Governance) data and policies.
+
+## 💻 Tech Stack
+
+- **React**: A JavaScript library for building user interfaces
+- **Material UI**: React component library implementing Google's Material Design
+- **React Router**: For navigation between different views
+- **Axios**: For making API requests
+
+## 🔧 Prerequisites
 
 Before you begin, ensure you have the following installed:
 
-- [Node.js](https://nodejs.org/) (version 18 or higher recommended)
-- npm (comes with Node.js)
+- **Node.js** (v14.x or higher)
+- **npm** (v7.x or higher)
 
-## Getting Started
-
-### Step 1: Clone the Repository
+You can check your current versions with:
 
 ```bash
-git clone [repository-url]
-cd next-gen-esg-platform/frontend-service
+node -v
+npm -v
 ```
 
-### Step 2: Install Dependencies
+## 🚀 Getting Started
 
-Run the following command to install all the required dependencies:
+Follow these simple steps to get your development environment set up:
+
+### 1. Clone the repository (if you haven't already)
+
+```bash
+git clone https://github.com/your-organization/next-gen-esg-platform.git
+cd next-gen-esg-platform
+```
+
+### 2. Navigate to the frontend service directory
+
+```bash
+cd frontend-service
+```
+
+### 3. Install dependencies
 
 ```bash
 npm install
 ```
 
-### Step 3: Configure Environment (Optional)
-
-The application is currently configured to connect to backend services on localhost. For development purposes, this should work fine. If you need to change the backend URL, open `src/services/apiService.js` and modify the `QUERY_SERVICE_URL` constant.
-
-### Step 4: Start the Development Server
-
-Run the following command to start the development server:
+### 4. Start the development server
 
 ```bash
 npm start
 ```
 
-This will start the application in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser. The page will automatically reload when you make changes to the code.
+This will run the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-## Application Structure
+The page will automatically reload when you make changes to the code.
 
-- `/src` - Contains all the source code
-  - `/components` - React components used throughout the application
-  - `/services` - API service functions for backend communication
-  - `/theme` - Material UI theme configuration
-  - `App.js` - Main application component
+## 📁 Project Structure
 
-## Development Guide
+```
+frontend-service/
+├── public/             # Static files
+├── src/                # Source code
+│   ├── components/     # React components
+│   ├── services/       # API service functions
+│   ├── theme/          # UI theme configuration
+│   ├── App.js          # Main application component
+│   └── index.js        # Application entry point
+└── package.json        # Project dependencies and scripts
+```
 
-### Working with Components
+### Key Files and Directories
 
-The application uses React components located in the `/src/components` directory. Each component is responsible for a specific part of the UI.
+- **components/**: Contains all React components used in the application
 
-To create a new component:
+  - **Dashboard.js**: Main dashboard view
+  - **Navbar.js**: Navigation bar component
+  - **PolicyList.js**: Component to display policy lists
+  - **QueryInterface.js**: Interface for querying data
+  - **ThemeToggle.js**: Component for toggling between light and dark themes
 
-1. Create a new file in the appropriate subfolder under `/src/components`
-2. Import necessary dependencies
-3. Define your component (function or class-based)
+- **services/**: Contains API service functions for data fetching
+  - **apiService.js**: Main API integration service
+
+## 👨‍💻 Development Guide
+
+### Creating a New Component
+
+1. Create a new file in the `src/components` directory
+2. Import React and any required dependencies
+3. Create your component using either function or class syntax
 4. Export your component
-5. Import and use it in other components as needed
+5. Import and use it in other components
 
 Example:
 
 ```jsx
-// src/components/YourComponent.js
+// src/components/MyNewComponent.js
 import React from "react";
 
-function YourComponent() {
+const MyNewComponent = ({ prop1, prop2 }) => {
   return (
     <div>
-      <h1>Your Component</h1>
+      <h1>My New Component</h1>
+      <p>Prop 1: {prop1}</p>
+      <p>Prop 2: {prop2}</p>
     </div>
   );
-}
+};
 
-export default YourComponent;
+export default MyNewComponent;
 ```
 
-### Working with the API
+### Using the API Service
 
-The application communicates with backend services using Axios. The API service functions are located in `/src/services/apiService.js`.
-
-To call an API:
-
-1. Import the required function from apiService.js
-2. Call the function in your component
-3. Handle the response using async/await or promises
-
-Example:
+The `apiService.js` file contains functions for interacting with the backend API. To use it:
 
 ```jsx
-import { searchESGQuery } from "../services/apiService";
+import { fetchData } from '../services/apiService';
 
-// In a component
-async function handleSearch() {
-  try {
-    const result = await searchESGQuery("carbon emissions");
-    console.log(result);
-    // Process the result
-  } catch (error) {
-    console.error("Error occurred:", error);
-    // Handle the error
-  }
-}
+// In your component
+const MyComponent = () => {
+  const [data, setData] = React.useState([]);
+
+  React.useEffect(() => {
+    const getData = async () => {
+      try {
+        const result = await fetchData();
+        setData(result);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    getData();
+  }, []);
+
+  return (
+    // Your JSX here
+  );
+};
 ```
 
-### Adding Routes
+## 📜 Available Scripts
 
-The application uses React Router for navigation. To add a new route:
+In the project directory, you can run:
 
-1. Import your component
-2. Add a new Route element in the router configuration
+### `npm start`
 
-## Testing
+Runs the app in development mode at [http://localhost:3000](http://localhost:3000).
 
-Run tests with:
+### `npm test`
 
-```bash
-npm test
-```
+Launches the test runner in interactive watch mode.
 
-This launches the test runner in interactive watch mode.
+### `npm run build`
 
-## Building for Production
+Builds the app for production to the `build` folder.
 
-To build the application for production, run:
+### `npm run eject`
 
-```bash
-npm run build
-```
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-This creates an optimized production build in the `build` folder.
+If you need to customize the configuration files, you can `eject`.
 
-## Troubleshooting
+## 🎨 Customizing the Theme
+
+The theme configuration is located in the `src/theme` directory. You can modify colors, typography, and other UI elements there.
+
+## 🔄 API Integration
+
+The frontend communicates with backend services using the functions defined in `src/services/apiService.js`. If you need to add new API endpoints or modify existing ones, this is the file to update.
+
+## ❓ Troubleshooting
 
 ### Common Issues
 
-1. **Node Version Issues**: Ensure you're using a compatible Node.js version. This project works best with Node.js v18+.
+1. **"Module not found" errors**
 
-2. **Missing Dependencies**: If you encounter errors about missing dependencies, try running `npm install` again.
+   - Make sure all dependencies are installed using `npm install`
+   - Check import paths for typos
 
-3. **Backend Connection Issues**: By default, the application expects the Query Service to be running on `http://localhost:8002`. Make sure this service is running or update the URL in `src/services/apiService.js`.
+2. **API calls failing**
 
-4. **Port Already in Use**: If port 3000 is already in use, React will prompt you to use a different port. Press 'Y' to accept.
+   - Ensure the backend services are running
+   - Check the console for specific error messages
+   - Verify API endpoints in the `apiService.js` file
 
-If you encounter any other issues, please reach out to the development team.
+3. **Styles not applying correctly**
+   - Check for conflicting CSS rules
+   - Ensure your theme provider is properly set up
 
-## Additional Resources
+### Still Having Issues?
 
-- [React Documentation](https://reactjs.org/docs/getting-started.html)
-- [Material UI Documentation](https://mui.com/getting-started/usage/)
-- [React Router Documentation](https://reactrouter.com/docs/en/v6)
+- Review the React and Material UI documentation
+- Ask for help from team members
+- Check the project's issue tracker
+
+---
+
+This README was last updated on November 6, 2023.
