@@ -1,107 +1,131 @@
-# Next-Gen ESG Platform
+# Next Gen ESG Platform
 
-## Overview
+A microservices-based platform for processing ESG (Environmental, Social, Governance) policy queries using natural language processing.
 
-This project is a modern ESG (Environmental, Social, and Governance) platform built with a microservices architecture. It allows users to upload, process, search, and analyze ESG documents through an intuitive web interface.
+## Architecture
 
-## Services
+The platform consists of four main microservices:
 
-The platform consists of the following microservices:
+1. **Frontend Service**: React-based UI for user interaction
+2. **Document Service**: Manages PDF document storage and embeddings using ChromaDB
+3. **NLP Service**: Processes natural language queries using OpenAI
+4. **Query Service**: Orchestrates the query flow between services
 
-### 1. [Document Service](./document-service/README.md)
+## Microservices Interaction Flow
 
-- Handles PDF document processing, text extraction, and vector embedding
-- Provides document search capabilities
-- Built with Python, FastAPI, PyMuPDF, and ChromaDB
+1. User submits a query through the Frontend
+2. Frontend sends the query to the Query Service
+3. Query Service forwards the query to the NLP Service
+4. NLP Service requests relevant document chunks from the Document Service
+5. Document Service returns semantically relevant document chunks
+6. NLP Service uses these chunks and OpenAI to generate a comprehensive answer
+7. The answer flows back through the Query Service to the Frontend
+8. Frontend displays the answer with source information to the user
 
-### 2. NLP Service
-
-- Provides natural language processing capabilities
-- Analyzes document content for ESG-related insights
-- Built with Python, FastAPI, and OpenAI integrations
-
-### 3. Query Service
-
-- Orchestrates requests between frontend and backend services
-- Manages complex multi-step queries
-- Built with Python and FastAPI
-
-### 4. Frontend Service
-
-- User interface for the ESG platform
-- Allows document upload, search, and visualization
-- Built with React.js and modern UI libraries
-
-## Getting Started
+## Setup Instructions
 
 ### Prerequisites
 
 - Docker and Docker Compose
-- Git
-- Python 3.8+ (for local development)
-- Node.js 16+ (for frontend development)
+- Node.js and npm (for local frontend development)
+- Python 3.9+ (for local backend development)
+- OpenAI API key
 
-### Quick Start with Docker
+### Environment Setup
 
-The fastest way to run the entire platform is with Docker Compose:
+1. Create a `.env` file in the root directory with your OpenAI API key:
+   ```
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+### Running with Docker Compose
+
+Start all services:
 
 ```bash
-# Clone the repository (if not already done)
-git clone https://github.com/your-org/next-gen-esg-platform.git
-cd next-gen-esg-platform
-
-# Create an .env file with required environment variables
-echo "OPENAI_API_KEY=your_openai_api_key" > .env
-
-# Start all services
 docker-compose up
 ```
 
-Once all services are running, you can access:
+Or build and start:
 
-- Frontend UI: http://localhost:3000
-- Document Service API: http://localhost:8000/docs
-- NLP Service API: http://localhost:8001/docs
-- Query Service API: http://localhost:8002/docs
-
-### Local Development
-
-For local development, you can run each service individually. Please refer to the README in each service directory for specific instructions:
-
-- [Document Service Setup](./document-service/README.md)
-- Frontend Service: Run `npm install && npm start` in the frontend-service directory
-- Other services have similar Python-based setups
-
-## Architecture Overview
-
-```
-+----------------+
-|    Frontend    |
-|   (React.js)   |
-+--------+-------+
-         |
-         v
-+--------+-------+
-|  Query Service  |
-|    (FastAPI)    |
-+--------+-------+
-         |
-+--------+-------+--------+
-|                |        |
-v                v        v
-+-----------+ +--------+ +-------------+
-| Document  | |  NLP   | | (Future     |
-| Service   | |Service | | Services)   |
-+-----------+ +--------+ +-------------+
+```bash
+docker-compose up --build
 ```
 
-## Development Guidelines
+### Running Services Individually
 
-- Use consistent code formatting across services
-- Write unit tests for all new features
-- Document API endpoints using OpenAPI/Swagger
-- Follow the microservices architecture pattern
+#### Document Service
 
-## License
+```bash
+cd document-service
+pip install -r requirements.txt
+python main.py
+```
 
-[Your License Information]
+#### NLP Service
+
+```bash
+cd nlp-service
+pip install -r requirements.txt
+python main.py
+```
+
+#### Query Service
+
+```bash
+cd query-service
+pip install -r requirements.txt
+python main.py
+```
+
+#### Frontend
+
+```bash
+cd frontend-service
+npm install
+npm start
+```
+
+## API Endpoints
+
+### Document Service (Port 8000)
+
+- `GET /`: Health check
+- `POST /setup`: Process all PDFs in a directory
+- `GET /status/{job_id}`: Get processing status
+- `POST /search`: Search for relevant document chunks
+- `POST /upload`: Upload a PDF file
+
+### NLP Service (Port 8001)
+
+- `GET /`: Health check
+- `POST /process_query`: Process a natural language query
+
+### Query Service (Port 8002)
+
+- `GET /`: Health check
+- `POST /query`: Orchestrate query processing
+
+## Adding ESG Documents
+
+Place PDF documents in the `document-service/pdfs` directory. Then, either:
+
+1. Use the `/setup` endpoint to process all PDFs, or
+2. Use the `/upload` endpoint to add PDFs one by one
+
+## Development and Enhancement
+
+### Adding New Features
+
+1. Frontend components are in `frontend-service/src/components`
+2. API services are in `frontend-service/src/services`
+3. Backend logic is in the respective service directories
+
+### Potential Enhancements
+
+- User authentication and role-based access
+- Document categorization and filtering
+- Advanced query suggestions
+- Query history tracking
+- Interactive document viewer
+- Performance analytics dashboard
