@@ -151,7 +151,7 @@ Reasoning through this step by step:"""
         ]
 
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4.1",
             messages=messages,
             temperature=0.2  # Lower temperature for more factual responses
         )
