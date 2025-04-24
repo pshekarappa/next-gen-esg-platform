@@ -243,9 +243,20 @@ curl -X POST http://localhost:8000/search \
    - Look for error logs in the console output
 
 4. **Search returns no results**:
+
    - Make sure you've processed PDFs before searching
    - Check the ChromaDB directory exists and has data
    - Try simpler search queries first
+
+5. **OpenAI token limit exceeded errors in the NLP service**:
+   - Error message: `openai.BadRequestError: Error code: 400 - {'error': {'message': "This model's maximum context length is 8192 tokens...", 'code': 'context_length_exceeded'}}`
+   - This happens when too much text is sent to the OpenAI API
+   - Solutions:
+     - Reduce the chunk size in the document service (edit `CHUNK_SIZE` in `main.py`)
+     - Limit the number of results returned from the document service (`n_results` parameter)
+     - Use a smaller, more focused query
+     - Implement pagination when processing large documents
+     - Consider using a model with larger context window if available
 
 ### Getting Help
 

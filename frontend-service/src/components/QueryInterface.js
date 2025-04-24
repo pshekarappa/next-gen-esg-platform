@@ -78,6 +78,7 @@ const QueryInterface = () => {
 
     try {
       const response = await searchESGQuery(query);
+      console.log("Response:", response.answer);
       setResult(response);
 
       // Add to query history if not already present

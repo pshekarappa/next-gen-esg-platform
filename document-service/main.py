@@ -31,8 +31,10 @@ app.add_middleware(
 
 # Global variables
 UPLOAD_DIR = "pdfs"
-CHUNK_SIZE = 1000  # characters
-CHUNK_OVERLAP = 200  # characters
+# IMPORTANT: Adjust these values to control token usage when integrating with OpenAI APIs
+# If you encounter 'context_length_exceeded' errors in NLP service, reduce these values
+CHUNK_SIZE = 350  # characters (reduced from 500 to avoid token limit issues)
+CHUNK_OVERLAP = 100  # characters (reduced from 200)
 
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -49,7 +51,8 @@ class SetupRequest(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-    n_results: Optional[int] = 5
+    # Reducing default results to help avoid token limit issues with OpenAI
+    n_results: Optional[int] = 3
 
 class ProcessingStatusResponse(BaseModel):
     job_id: str
